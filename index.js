@@ -25,6 +25,15 @@ const persons = [
   },
 ];
 
+app.get('/info', (request, response) => {
+  const personsCount = persons.length;
+  const currentTime = Date();
+  response.send(
+    `<p>Phonebook has info for ${personsCount} people</p>
+    <p>${currentTime}</p>`
+  );
+});
+
 app.get('/api/persons', (request, response) => {
   response.json(persons);
 });
