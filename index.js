@@ -52,7 +52,7 @@ app.get('/api/persons/:id', (request, response) => {
     response.json(person);
   } else {
     response.status(404).json({
-      error: 'content missing',
+      error: 'Person not found',
     });
   }
 });
@@ -65,12 +65,23 @@ app.delete('/api/persons/:id', (request, response) => {
 });
 
 app.post('/api/persons/', (request, response) => {
-  const body = request.body;
+  const name = request.body.name;
+  const number = request.body.number;
+
+  if (!name || !number) {
+    return response.status(400).json({
+      error: 'name or number missing',
+    });
+  } else if (persons.find((person) => person.name === name)) {
+    return response.status(400).json({
+      error: 'name must be unique',
+    });
+  }
 
   const person = {
     id: generateId(),
-    name: body.name,
-    number: body.number,
+    name: name,
+    number: number,
   };
 
   persons = persons.concat(person);
