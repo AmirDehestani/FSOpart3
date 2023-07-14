@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require('./models/person.js');
 
 app = express();
 app.use(cors());
@@ -14,60 +15,29 @@ app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :data')
 );
 
-let persons = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-];
-
-const generateId = () => {
-  const id = Math.floor(Math.random() * 1000000);
-  return id;
-};
-
 app.get('/info', (request, response) => {
-  const personsCount = persons.length;
   const currentTime = Date();
-  response.send(
-    `<p>Phonebook has info for ${personsCount} people</p>
-    <p>${currentTime}</p>`
-  );
+  Person.count().then((personsCount) => {
+    response.send(
+      `<p>Phonebook has info for ${personsCount} people</p>
+      <p>${currentTime}</p>`
+    );
+  });
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
+  Person.findById(request.params.id).then((person) => {
     response.json(person);
-  } else {
-    response.status(404).json({
-      error: 'Person not found',
-    });
-  }
+  });
 });
 
+// Doesn't work for now
 app.delete('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id);
   persons = persons.filter((person) => person.id !== id);
@@ -83,20 +53,19 @@ app.post('/api/persons/', (request, response) => {
     return response.status(400).json({
       error: 'name or number missing',
     });
-  } else if (persons.find((person) => person.name === name)) {
-    return response.status(400).json({
-      error: 'name must be unique',
-    });
   }
 
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: name,
     number: number,
-  };
+  });
 
-  persons = persons.concat(person);
-  response.json(person);
+  person
+    .save()
+    .then((savedPerson) => {
+      response.json(savedPerson);
+    })
+    .catch((error) => console.log('Failed to add person', error.message));
 });
 
 const PORT = process.env.PORT || 3001;
