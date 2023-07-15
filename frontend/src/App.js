@@ -20,7 +20,15 @@ const App = () => {
 
   // Load the data from database
   useEffect(() => {
-    phonebookService.getAll().then((respond) => setPersons(respond));
+    phonebookService
+      .getAll()
+      .then((respond) => setPersons(respond))
+      .catch((error) => {
+        setMessage({ message: error.response.data.error, type: 'error' });
+        setTimeout(() => {
+          setMessage({ message: null, type: null });
+        }, 5000);
+      });
   }, []);
 
   // Handlers
@@ -70,11 +78,8 @@ const App = () => {
               setMessage({ message: null, type: null });
             }, 5000);
           })
-          .catch(() => {
-            setMessage({
-              message: `Information of ${newPerson.name} has already been removed from the server`,
-              type: 'error',
-            });
+          .catch((error) => {
+            setMessage({ message: error.response.data.error, type: 'error' });
             setTimeout(() => {
               setMessage({ message: null, type: null });
             }, 5000);
@@ -83,14 +88,22 @@ const App = () => {
 
       // Person doesn't already exist, add it
     } else {
-      phonebookService.create(newPerson).then((response) => {
-        setPersons(persons.concat(response));
-        setnewPerson({ name: '', number: '' });
-        setMessage({ message: `Added ${response.name}`, type: 'success' });
-        setTimeout(() => {
-          setMessage({ message: null, type: null });
-        }, 5000);
-      });
+      phonebookService
+        .create(newPerson)
+        .then((response) => {
+          setPersons(persons.concat(response));
+          setnewPerson({ name: '', number: '' });
+          setMessage({ message: `Added ${response.name}`, type: 'success' });
+          setTimeout(() => {
+            setMessage({ message: null, type: null });
+          }, 5000);
+        })
+        .catch((error) => {
+          setMessage({ message: error.response.data.error, type: 'error' });
+          setTimeout(() => {
+            setMessage({ message: null, type: null });
+          }, 5000);
+        });
     }
   };
 
@@ -103,11 +116,8 @@ const App = () => {
         .then(() => {
           setPersons(persons.filter((person) => person.id !== id));
         })
-        .catch(() => {
-          setMessage({
-            message: `Information of ${newPerson.name} has already been removed from the server`,
-            type: 'error',
-          });
+        .catch((error) => {
+          setMessage({ message: error.response.data.error, type: 'error' });
           setTimeout(() => {
             setMessage({ message: null, type: null });
           }, 5000);
