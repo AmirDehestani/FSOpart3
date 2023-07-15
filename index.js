@@ -3,12 +3,12 @@ const morgan = require('morgan');
 const cors = require('cors');
 const Person = require('./models/person.js');
 
-app = express();
+const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
 
-morgan.token('data', function (request, response) {
+morgan.token('data', function (request) {
   return request.method === 'POST' ? JSON.stringify(request.body) : null;
 });
 app.use(
@@ -54,7 +54,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id;
   Person.findByIdAndRemove(id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
