@@ -43,15 +43,55 @@ const App = () => {
 
   const handleNameSubmit = (event) => {
     event.preventDefault();
+    const personExists = persons.find(
+      (person) => JSON.stringify(person.name) === JSON.stringify(newPerson.name)
+    );
 
-    phonebookService.create(newPerson).then((response) => {
-      setPersons(persons.concat(response));
-      setnewPerson({ name: '', number: '' });
-      setMessage({ message: `Added ${response.name}`, type: 'success' });
-      setTimeout(() => {
-        setMessage({ message: null, type: null });
-      }, 5000);
-    });
+    // Person exists, ask user if they want to update the existing number
+    if (personExists) {
+      if (
+        window.confirm(
+          `${newPerson.name} is already added to the phonebook, replace the old number with a new one?`
+        )
+      ) {
+        const id = personExists.id;
+        phonebookService
+          .update(id, newPerson)
+          .then((response) => {
+            setPersons(
+              persons.map((person) => (person.id !== id ? person : response))
+            );
+            setnewPerson({ name: '', number: '' });
+            setMessage({
+              message: `Updated ${response.name}`,
+              type: 'success',
+            });
+            setTimeout(() => {
+              setMessage({ message: null, type: null });
+            }, 5000);
+          })
+          .catch(() => {
+            setMessage({
+              message: `Information of ${newPerson.name} has already been removed from the server`,
+              type: 'error',
+            });
+            setTimeout(() => {
+              setMessage({ message: null, type: null });
+            }, 5000);
+          });
+      }
+
+      // Person doesn't already exist, add it
+    } else {
+      phonebookService.create(newPerson).then((response) => {
+        setPersons(persons.concat(response));
+        setnewPerson({ name: '', number: '' });
+        setMessage({ message: `Added ${response.name}`, type: 'success' });
+        setTimeout(() => {
+          setMessage({ message: null, type: null });
+        }, 5000);
+      });
+    }
   };
 
   const handleDelete = (person) => {
