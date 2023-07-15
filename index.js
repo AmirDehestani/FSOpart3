@@ -92,9 +92,18 @@ app.put('/api/persons/:id', (request, response, next) => {
     context: 'query',
   })
     .then((updatedPerson) => {
-      response.json(updatedPerson);
+      if (updatedPerson) {
+        response.json(updatedPerson);
+      } else {
+        return response.status(404).json({
+          error: `Information of ${body.name} has already been removed from the server`,
+        });
+      }
     })
-    .catch((error) => next(error));
+    .catch((error) => {
+      console.log('error sent');
+      next(error);
+    });
 });
 
 const PORT = process.env.PORT || 3001;
