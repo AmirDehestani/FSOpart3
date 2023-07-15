@@ -36,9 +36,17 @@ app.get('/api/persons', (request, response, next) => {
 });
 
 app.get('/api/persons/:id', (request, response, next) => {
-  Person.findById(request.params.id)
+  const id = request.params.id;
+
+  Person.findById(id)
     .then((person) => {
-      response.json(person);
+      if (person) {
+        response.json(person);
+      } else {
+        return response.status(404).json({
+          error: `Person with id "${id}" not found`,
+        });
+      }
     })
     .catch((error) => next(error));
 });
@@ -106,4 +114,5 @@ const errorHandler = (error, request, response, next) => {
 
   next(error);
 };
+
 app.use(errorHandler);
